@@ -31,9 +31,16 @@ set :assets_prefix, '/assets'
 set :digest_assets, false
 set server: 'thin', connections: [], history_file: 'history.yml'
 set :public_folder, File.join(settings.root, 'public')
-set :views, File.join(settings.root, 'dashboards')
 set :default_dashboard, nil
 set :auth_token, nil
+set :dashboards_file, 'dashboards.json'
+
+if File.exists? settings.dashboards_file
+  content = IO.read(settings.dashboards_file)
+  set dashboards: JSON.parse(content, symbolize_names: true)
+else
+  set dashboards: {}
+end
 
 if File.exists?(settings.history_file)
   set history: YAML.load_file(settings.history_file)
@@ -77,11 +84,9 @@ end
 
 get '/:dashboard' do
   protected!
-  tilt_html_engines.each do |suffix, _|
-    file = File.join(settings.views, "#{params[:dashboard]}.#{suffix}")
-    return render(suffix.to_sym, params[:dashboard].to_sym) if File.exist? file
+  if dashboard = load_dashboard(params[:dashboard])
+    return render(:erb, :dashboard, locals: { dashboard: dashboard })
   end
-
   halt 404
 end
 
@@ -151,9 +156,12 @@ def latest_events
 end
 
 def first_dashboard
-  files = Dir[File.join(settings.views, '*')].collect { |f| File.basename(f, '.*') }
-  files -= ['layout']
-  files.sort.first
+  key, value = settings.dashboards[:dashboards].first
+  key.to_s
+end
+
+def load_dashboard(name)
+  settings.dashboards.fetch(:dashboards, {})[name.to_sym]
 end
 
 def tilt_html_engines
