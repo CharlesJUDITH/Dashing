@@ -88,38 +88,41 @@ Dashing.AnimatedValue =
           , 10
       @[k] = num
 
-Dashing.widgets = widgets = {}
-Dashing.lastEvents = lastEvents = {}
+class Dashing.EventStream
+  start: ->
+    @source = new EventSource('events')
+    @source.addEventListener 'open', (e) ->
+      console.log("Connection opened", e)
+
+    @source.addEventListener 'error', (e)->
+      console.log("Connection error", e)
+      if (e.currentTarget.readyState == EventSource.CLOSED)
+        console.log("Connection closed")
+        setTimeout (->
+          window.location.reload()
+        ), 5*60*1000
+
+    @source.addEventListener 'message', (e) ->
+      data = JSON.parse(e.data)
+      if Dashing.lastEvents[data.id]?.updatedAt != data.updatedAt
+        if Dashing.debugMode
+          console.log("Received data for #{data.id}", data)
+        if Dashing.widgets[data.id]?.length > 0
+          Dashing.lastEvents[data.id] = data
+          for widget in Dashing.widgets[data.id]
+            widget.receiveData(data)
+
+    @source.addEventListener 'dashboards', (e) ->
+      data = JSON.parse(e.data)
+      if Dashing.debugMode
+        console.log("Received data for dashboards", data)
+      if data.dashboard is '*' or window.location.pathname is "/#{data.dashboard}"
+        Dashing.fire data.event, data
+
+Dashing.widgets = {}
+Dashing.lastEvents = {}
 Dashing.debugMode = false
-
-source = new EventSource('events')
-source.addEventListener 'open', (e) ->
-  console.log("Connection opened", e)
-
-source.addEventListener 'error', (e)->
-  console.log("Connection error", e)
-  if (e.currentTarget.readyState == EventSource.CLOSED)
-    console.log("Connection closed")
-    setTimeout (->
-      window.location.reload()
-    ), 5*60*1000
-
-source.addEventListener 'message', (e) ->
-  data = JSON.parse(e.data)
-  if lastEvents[data.id]?.updatedAt != data.updatedAt
-    if Dashing.debugMode
-      console.log("Received data for #{data.id}", data)
-    if widgets[data.id]?.length > 0
-      lastEvents[data.id] = data
-      for widget in widgets[data.id]
-        widget.receiveData(data)
-
-source.addEventListener 'dashboards', (e) ->
-  data = JSON.parse(e.data)
-  if Dashing.debugMode
-    console.log("Received data for dashboards", data)
-  if data.dashboard is '*' or window.location.pathname is "/#{data.dashboard}"
-    Dashing.fire data.event, data
+Dashing.eventStream = new Dashing.EventStream()
 
 $(document).ready ->
   Dashing.run()
