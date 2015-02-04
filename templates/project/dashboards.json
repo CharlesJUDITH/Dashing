@@ -1,0 +1,107 @@
+{
+  "dashboards": {
+    "sample": {
+      "title": "My super sweet dashboard",
+      "widgets": [
+        {
+          "sizex": 2,
+          "id": "welcome",
+          "view": "Text",
+          "title": "Hello",
+          "text": "This is your shiny new dashboard.",
+          "moreinfo": "Protip: You can drag the widgets around!"
+        },
+        {
+          "id": "synergy",
+          "view": "Meter",
+          "title": "Synergy",
+          "min": 0,
+          "max": 100
+        },
+        {
+          "sizey": 2,
+          "id": "buzzwords",
+          "view": "List",
+          "unordered": "true",
+          "title": "Buzzwords",
+          "moreinfo": "# of times said around the office"
+        },
+        {
+          "id": "valuation",
+          "view": "Number",
+          "title": "Current Valuation",
+          "moreinfo": "In billions",
+          "prefix": "$"
+        },
+        {
+          "sizex": 2,
+          "id": "convergence",
+          "view": "Graph",
+          "title": "Convergence"
+        }
+      ]
+    },
+
+    "sampletv": {
+      "title": "1080p dashboard",
+      "widgets": [
+        {
+          "view": "Clock"
+        },
+        {
+          "view": "Image",
+          "image": "/logo.png"
+        },
+        {
+          "sizex": 2,
+          "id": "welcome",
+          "view": "Text",
+          "title": "Hello",
+          "text": "This is your shiny new 1080p dashboard.",
+          "moreinfo": "Protip: You can drag the widgets around!"
+        },
+        {
+          "id": "synergy",
+          "view": "Meter",
+          "title": "Synergy",
+          "min": "0",
+          "max": "100" 
+        },
+        {
+          "id": "synergy",
+          "view": "Meter",
+          "moreinfo": "In sync with my neighbour!",
+          "title": "Synergy",
+          "min": "0",
+          "max": "100"
+        },
+        {
+          "sizey": 2,
+          "id": "buzzwords",
+          "view": "List",
+          "unordered": "true",
+          "title": "Buzzwords",
+          "moreinfo": "# of times said around the office"
+        },
+        {
+          "id": "karma",
+          "view": "Number",
+          "title": "Karma"
+        },
+        {
+          "sizex": 2,
+          "sizey": 2,
+          "id": "convergence",
+          "view": "Graph",
+          "title": "Convergence"
+        },
+        {
+          "sizex": 2,
+          "id": "twitter_mentions",
+          "view": "Comments",
+          "moreinfo": "Tweets tagged with #todayilearned"
+        }
+      ]
+    }
+  }
+}

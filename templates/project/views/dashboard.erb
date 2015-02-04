@@ -1,0 +1,22 @@
+<% dashboards ||= {} %>
+<% content_for(:title) { dashboard[:title] || "Dashboard" } %>
+
+<div class="gridster">
+  <ul>
+    <% widgets = dashboard[:widgets] || [] %>
+    <% widgets.each do |widget| %>
+      <li data-row="<%= widget[:row] || 1 %>"
+          data-col="<%= widget[:col] || 1 %>"
+          data-sizex="<%= widget[:sizex] || 1 %>"
+          data-sizey="<%= widget[:sizey] || 1 %>">
+          <% data = widget.clone %>
+          <% [:row, :col, :sizex, :sizey].each { |k| data.delete(k) } %>
+          <div <%= data.map{|k,v| "data-#{k}='#{v}'"}.join(" ") %>></div>
+      </li>
+    <% end %>
+  </ul>
+</div>
+
+<script type='text/javascript'>
+  Dashing.eventStream.start()
+</script>

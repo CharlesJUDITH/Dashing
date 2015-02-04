@@ -17,7 +17,7 @@ module Dashing
     end
 
     no_tasks do
-      %w(widget dashboard job).each do |type|
+      %w(widget job).each do |type|
         define_method "generate_#{type}" do |name|
           @name = Thor::Util.snake_case(name)
           directory(type.to_sym, "#{type}s")
@@ -31,11 +31,11 @@ module Dashing
       directory(:project, @name)
     end
 
-    desc "generate (widget/dashboard/job) NAME", "Creates a new widget, dashboard, or job."
+    desc "generate (widget/job) NAME", "Creates a new widget, or job."
     def generate(type, name)
       public_send("generate_#{type}".to_sym, name)
     rescue NoMethodError => e
-      puts "Invalid generator. Either use widget, dashboard, or job"
+      puts "Invalid generator. Either use widget, or job"
     end
 
     desc "install GIST_ID", "Installs a new widget from a gist."
