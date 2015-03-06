@@ -18,7 +18,7 @@ initGridster = ->
   $('.gridster ul:first').gridster
     widget_margins: Dashing.widget_margins
     widget_base_dimensions: Dashing.widget_base_dimensions
-    min_cols: 5
+    min_cols: Dashing.numColumns
     avoid_overlapped_widgets: !Dashing.customGridsterLayout
     draggable:
       stop: Dashing.showGridsterInstructions
