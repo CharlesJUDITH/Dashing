@@ -1,19 +1,25 @@
 #= require jquery
 #= require es5-shim
-#= require batman
-#= require batman.jquery
+#= require react.min
 
 
-Batman.Filters.prettyNumber = (num) ->
+class window.Dashing
+  constructor: ->
+
+Dashing.debugMode = false
+Dashing.eventSource = null
+Dashing.lastEvents = {}
+Dashing.widgets = {}
+
+Dashing.prettyNumber = (num) ->
   num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") unless isNaN(num)
 
-Batman.Filters.dashize = (str) ->
+Dashing.dashize = (str) ->
   dashes_rx1 = /([A-Z]+)([A-Z][a-z])/g;
   dashes_rx2 = /([a-z\d])([A-Z])/g;
-
   return str.replace(dashes_rx1, '$1_$2').replace(dashes_rx2, '$1_$2').replace(/_/g, '-').toLowerCase()
 
-Batman.Filters.shortenedNumber = (num) ->
+Dashing.shortenedNumber = (num) ->
   return num if isNaN(num)
   if num >= 1000000000
     (num / 1000000000).toFixed(1) + 'B'
@@ -24,105 +30,55 @@ Batman.Filters.shortenedNumber = (num) ->
   else
     num
 
-class window.Dashing extends Batman.App
-  @on 'reload', (data) ->
-    window.location.reload(true)
+Dashing.renderWidget = (node, data) ->
+  view = $(node).data 'view'
+  id = $(node).attr 'id'
+  style = Dashing.dashize view
+  $(node).addClass "widget widget-#{style} #{style}"
+  widget = React.render React.createElement(Dashing[view], data), node
+  Dashing.widgets[id] ||= []
+  Dashing.widgets[id].push(widget)
+  if Dashing.lastEvents[id]
+    widget.setState Dashing.lastEvents[id]
 
-  @root ->
-Dashing.params = Batman.URI.paramsFromQuery(window.location.search.slice(1));
+Dashing.renderWidgets = () ->
+  rendered = false
+  $('div[data-view]').each (index, node) =>
+    Dashing.renderWidget node, $(node).data()
+    rendered = true
+  return rendered
 
-class Dashing.Widget extends Batman.View
-  constructor:  ->
-    # Set the view path
-    @constructor::source = Batman.Filters.underscore(@constructor.name)
-    super
+Dashing.updatedAtMessage = (updatedAt) ->
+  timestamp = new Date(updatedAt * 1000)
+  hours = timestamp.getHours()
+  minutes = ("0" + timestamp.getMinutes()).slice(-2)
+  "Last updated at #{hours}:#{minutes}"
 
-    @mixin($(@node).data())
-    Dashing.widgets[@id] ||= []
-    Dashing.widgets[@id].push(@)
-    @mixin(Dashing.lastEvents[@id]) # in case the events from the server came before the widget was rendered
+Dashing.startEventStream = () ->
+  Dashing.eventSource = new EventSource('events')
+  Dashing.eventSource.addEventListener 'open', (e) ->
+    console.log("Connection opened", e)
 
-    type = Batman.Filters.dashize(@view)
-    $(@node).addClass("widget widget-#{type} #{@id}")
+  Dashing.eventSource.addEventListener 'error', (e) ->
+    console.log("Connection error", e)
+    if (e.currentTarget.readyState == EventSource.CLOSED)
+      console.log("Connection closed")
+      setTimeout (->
+        window.location.reload()
+      ), 5*60*1000
 
-  @accessor 'updatedAtMessage', ->
-    if updatedAt = @get('updatedAt')
-      timestamp = new Date(updatedAt * 1000)
-      hours = timestamp.getHours()
-      minutes = ("0" + timestamp.getMinutes()).slice(-2)
-      "Last updated at #{hours}:#{minutes}"
-
-  @::on 'ready', ->
-    Dashing.Widget.fire 'ready'
-
-  receiveData: (data) =>
-    @mixin(data)
-    @onData(data)
-
-  onData: (data) =>
-    # Widgets override this to handle incoming data
-
-Dashing.AnimatedValue =
-  get: Batman.Property.defaultAccessor.get
-  set: (k, to) ->
-    if !to? || isNaN(to)
-      @[k] = to
-    else
-      timer = "interval_#{k}"
-      num = if (!isNaN(@[k]) && @[k]?) then @[k] else 0
-      unless @[timer] || num == to
-        to = parseFloat(to)
-        num = parseFloat(num)
-        up = to > num
-        num_interval = Math.abs(num - to) / 90
-        @[timer] =
-          setInterval =>
-            num = if up then Math.ceil(num+num_interval) else Math.floor(num-num_interval)
-            if (up && num > to) || (!up && num < to)
-              num = to
-              clearInterval(@[timer])
-              @[timer] = null
-              delete @[timer]
-            @[k] = num
-            @set k, to
-          , 10
-      @[k] = num
-
-class Dashing.EventStream
-  start: ->
-    @source = new EventSource('events')
-    @source.addEventListener 'open', (e) ->
-      console.log("Connection opened", e)
-
-    @source.addEventListener 'error', (e)->
-      console.log("Connection error", e)
-      if (e.currentTarget.readyState == EventSource.CLOSED)
-        console.log("Connection closed")
-        setTimeout (->
-          window.location.reload()
-        ), 5*60*1000
-
-    @source.addEventListener 'message', (e) ->
-      data = JSON.parse(e.data)
-      if Dashing.lastEvents[data.id]?.updatedAt != data.updatedAt
-        if Dashing.debugMode
-          console.log("Received data for #{data.id}", data)
-        if Dashing.widgets[data.id]?.length > 0
-          Dashing.lastEvents[data.id] = data
-          for widget in Dashing.widgets[data.id]
-            widget.receiveData(data)
-
-    @source.addEventListener 'dashboards', (e) ->
-      data = JSON.parse(e.data)
+  Dashing.eventSource.addEventListener 'message', (e) ->
+    data = JSON.parse(e.data)
+    if Dashing.lastEvents[data.id]?.updatedAt != data.updatedAt
       if Dashing.debugMode
-        console.log("Received data for dashboards", data)
-      if data.dashboard is '*' or window.location.pathname is "/#{data.dashboard}"
-        Dashing.fire data.event, data
-
-Dashing.widgets = {}
-Dashing.lastEvents = {}
-Dashing.debugMode = false
-Dashing.eventStream = new Dashing.EventStream()
+        console.log("Received data for #{data.id}", data)
+      if Dashing.widgets[data.id]?.length > 0
+        data['updatedAtMessage'] = Dashing.updatedAtMessage(data.updatedAt)
+        Dashing.lastEvents[data.id] = data
+        for widget in Dashing.widgets[data.id]
+          widget.setState data
 
 $(document).ready ->
-  Dashing.run()
+  if Dashing.renderWidgets()
+    Dashing.startEventStream()
+

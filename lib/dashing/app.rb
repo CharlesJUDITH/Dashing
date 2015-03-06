@@ -1,5 +1,6 @@
 require 'sinatra'
 require 'sprockets'
+require 'sprockets-coffee-react'
 require 'sinatra/content_for'
 require 'rufus/scheduler'
 require 'coffee-script'
@@ -26,7 +27,6 @@ helpers do
 end
 
 set :root, Dir.pwd
-set :sprockets,     Sprockets::Environment.new(settings.root)
 set :assets_prefix, '/assets'
 set :digest_assets, false
 set server: 'thin', connections: [], history_file: 'history.yml'
@@ -34,6 +34,12 @@ set :public_folder, File.join(settings.root, 'public')
 set :default_dashboard, nil
 set :auth_token, nil
 set :dashboards_file, 'dashboards.json'
+
+sprockets = Sprockets::Environment.new(settings.root)
+sprockets.register_preprocessor 'application/javascript', Sprockets::CoffeeReact
+sprockets.register_engine '.cjsx', Sprockets::CoffeeReactScript
+sprockets.register_engine '.js.cjsx', Sprockets::CoffeeReactScript
+set :sprockets, sprockets
 
 if File.exists? settings.dashboards_file
   content = IO.read(settings.dashboards_file)

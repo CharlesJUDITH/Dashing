@@ -144,10 +144,12 @@ h3 {
 }
 
 .widget {
+  box-sizing: border-box;
   padding: 25px 12px;
   text-align: center;
   width: 100%;
-  display: table-cell;
+  height: 100%;
+  display: inline-block;
   vertical-align: middle;
 }
 
