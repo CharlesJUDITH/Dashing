@@ -30,6 +30,10 @@ Dashing.shortenedNumber = (num) ->
   else
     num
 
+Dashing.receiveData = (widget, data) ->
+  widget.componentDidReceiveData? data
+  widget.setState data
+
 Dashing.renderWidget = (node, data) ->
   view = $(node).data 'view'
   id = $(node).attr 'id'
@@ -39,7 +43,7 @@ Dashing.renderWidget = (node, data) ->
   Dashing.widgets[id] ||= []
   Dashing.widgets[id].push(widget)
   if Dashing.lastEvents[id]
-    widget.setState Dashing.lastEvents[id]
+    Dashing.receiveData widget, Dashing.lastEvents[id]
 
 Dashing.renderWidgets = () ->
   rendered = false
@@ -76,7 +80,7 @@ Dashing.startEventStream = () ->
         data['updatedAtMessage'] = Dashing.updatedAtMessage(data.updatedAt)
         Dashing.lastEvents[data.id] = data
         for widget in Dashing.widgets[data.id]
-          widget.setState data
+          Dashing.receiveData widget, data
 
 $(document).ready ->
   if Dashing.renderWidgets()
