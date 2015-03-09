@@ -1,6 +1,12 @@
 <% dashboards ||= {} %>
 <% content_for(:title) { dashboard[:title] || "Dashboard" } %>
 
+<script type='text/javascript'>
+  Dashing.widget_margins = <%= dashboard[:widgetMargins] || [5, 5] %>
+  Dashing.widget_base_dimensions = <%= dashboard[:widgetDimensions] || [300, 360] %>
+  Dashing.numColumns = <%= dashboard[:widgetCols] || 4 %>
+</script>
+
 <div class="gridster">
   <ul>
     <% widgets = dashboard[:widgets] || [] %>
@@ -11,12 +17,8 @@
           data-sizey="<%= widget[:sizey] || 1 %>">
           <% data = widget.clone %>
           <% [:row, :col, :sizex, :sizey].each { |k| data.delete(k) } %>
-          <div <%= data.map{|k,v| "data-#{k}='#{v}'"}.join(" ") %>></div>
+          <div id="<%= data[:id] %>" <%= data.map { |k, v| "data-#{k}='#{v}'" }.join(" ") %>></div>
       </li>
     <% end %>
   </ul>
 </div>
-
-<script type='text/javascript'>
-  Dashing.eventStream.start()
-</script>

@@ -44,6 +44,8 @@
 
     "sampletv": {
       "title": "1080p dashboard",
+      "widgetDimensions": [370, 340],
+      "widgetCols": 5,
       "widgets": [
         {
           "view": "Clock"
