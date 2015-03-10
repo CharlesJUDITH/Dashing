@@ -19,6 +19,7 @@ initGridster = ->
     draggable:
       stop: Dashing.showGridsterInstructions
       start: -> Dashing.currentWidgetPositions = Dashing.getWidgetPositions()
+  $('.gridster').css('visibility', 'visible')
 
 $(window).load ->
   initGridster()
