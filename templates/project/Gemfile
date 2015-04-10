@@ -1,6 +1,8 @@
 source 'https://rubygems.org'
 
-gem 'dashing', :github => 'FlorianZ/dashing', :branch => 'master'
+git 'https://github.com/FlorianZ/dashing.git' do
+    gem 'dashing'
+end
 
 ## Remove this if you don't need a twitter widget.
 gem 'twitter', '>= 5.9.0'
