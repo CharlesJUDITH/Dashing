@@ -21,14 +21,14 @@ Dashing.dashize = (str) ->
 
 Dashing.shortenedNumber = (num) ->
   return num if isNaN(num)
-  if num >= 1000000000
-    (num / 1000000000).toFixed(1) + 'B'
-  else if num >= 1000000
-    (num / 1000000).toFixed(1) + 'M'
+  if num < 1000
+    num
   else if num >= 1000
     (num / 1000).toFixed(1) + 'K'
-  else
-    num
+  else if num >= 1000000
+    (num / 1000000).toFixed(1) + 'M'
+  else num >= 1000000000
+    (num / 1000000000).toFixed(1) + 'B'
 
 Dashing.receiveData = (widget, data) ->
   widget.componentDidReceiveData? data
